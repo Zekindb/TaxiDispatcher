@@ -1,0 +1,13 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TaxiDispatcher.Views.TariffsView">
+    <StackPanel Margin="20" Spacing="15">
+        <TextBlock Text="Управление тарифами (Админ)" FontSize="22" FontWeight="Bold"/>
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Content="Добавить тариф" Padding="10,5" />
+            <Button Content="Управление классами авто" Padding="10,5" />
+            
+        </StackPanel>
+        <TextBlock Text="(Здесь будет отображаться таблица данных и рабочая область)" Foreground="Gray" FontStyle="Italic" Margin="0,20,0,0"/>
+    </StackPanel>
+</UserControl>

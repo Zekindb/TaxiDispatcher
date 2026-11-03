@@ -1,11 +1,12 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
+using Avalonia.Interactivity;
 using TaxiDispatcher.Data;
 using TaxiDispatcher.Models;
+using TaxiDispatcher.Services;
+using TaxiDispatcher.Views;
+using TaxiDispatcher.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace TaxiDispatcher;
 
@@ -14,41 +15,42 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Loaded += async (s, e) => await LoadDataAsync();
+        InitializeDatabase();
     }
 
-    private async Task LoadDataAsync()
+    private void InitializeDatabase()
     {
         try
         {
             using var db = Db.Create();
-            db.Database.EnsureCreated();
+            db.Database.ExecuteSqlRaw("IF COL_LENGTH('Users', 'password_hash') IS NULL ALTER TABLE Users ADD password_hash nvarchar(255) NOT NULL DEFAULT '';");
 
-            if (!db.Roles.Any())
+            var admin = db.Users.FirstOrDefault(u => u.Login == "admin");
+            if (admin != null && string.IsNullOrEmpty(admin.PasswordHash))
             {
-                var rAdmin = new Role { RoleName = "Администратор" };
-                var rDisp = new Role { RoleName = "Диспетчер" };
-                var rDriver = new Role { RoleName = "Водитель" };
-                var rClient = new Role { RoleName = "Клиент" };
-
-                db.Roles.AddRange(rAdmin, rDisp, rDriver, rClient);
-                db.SaveChanges();
-
-                db.Users.AddRange(
-                    new User { Login = "admin", FullName = "Сидоров Алексей", Phone = "+79991112233", RoleId = rAdmin.RoleId },
-                    new User { Login = "disp1", FullName = "Иванова Мария", Phone = "+79992223344", RoleId = rDisp.RoleId },
-                    new User { Login = "driver1", FullName = "Петров Иван", Phone = "+79993334455", RoleId = rDriver.RoleId },
-                    new User { Login = "client1", FullName = "Козлов Артем", Phone = "+79995556677", RoleId = rClient.RoleId }
-                );
+                admin.PasswordHash = AuthService.HashPassword("admin123");
                 db.SaveChanges();
             }
+        }
+        catch { /* Игнорируем при отсутствии БД */ }
+    }
 
-            var users = await db.Users.Include(u => u.Role).ToListAsync();
-            UsersList.ItemsSource = users.Select(u => $"{u.FullName} - {u.Role?.RoleName}").ToList();
-        }
-        catch (Exception ex)
-        {
-            UsersList.ItemsSource = new List<string> { "Ошибка: " + ex.Message + " | Детали: " + ex.InnerException?.Message };
-        }
+    public void ShowMenu() => MenuPanel.IsVisible = true;
+    public void HideMenu() => MenuPanel.IsVisible = false;
+
+    private void OrdersClick(object? sender, RoutedEventArgs e)
+        => (DataContext as MainViewModel)?.CurrentPage = new OrdersView();
+
+    private void UsersClick(object? sender, RoutedEventArgs e)
+        => (DataContext as MainViewModel)?.CurrentPage = new UsersView();
+
+    private void TariffsClick(object? sender, RoutedEventArgs e)
+        => (DataContext as MainViewModel)?.CurrentPage = new TariffsView();
+
+    private void LogoutClick(object? sender, RoutedEventArgs e)
+    {
+        Session.Logout();
+        HideMenu();
+        (DataContext as MainViewModel)?.CurrentPage = new LoginView();
     }
 }

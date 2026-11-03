@@ -1,9 +1,21 @@
-<Window xmlns="https://github.com/avaloniaui"
+﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TaxiDispatcher.ViewModels"
         x:Class="TaxiDispatcher.MainWindow"
-        Title="Диспетчерская такси" Width="800" Height="600">
-    <Grid RowDefinitions="Auto, *" Margin="20">
-        <TextBlock Text="Проверка подключения к БД (список пользователей):" FontWeight="Bold" FontSize="20" Margin="0,0,0,10"/>
-        <ListBox x:Name="UsersList" Grid.Row="1" />
-    </Grid>
+        x:DataType="vm:MainViewModel"
+        Title="Диспетчерская таксиP" Width="900" Height="650">
+	<Window.DataContext>
+		<vm:MainViewModel />
+	</Window.DataContext>
+	<Grid RowDefinitions="Auto, *">
+		<Border Grid.Row="0" x:Name="MenuPanel" IsVisible="False" Background="#2C3E50" Padding="10">
+			<StackPanel Orientation="Horizontal" Spacing="10">
+				<Button Content="Заказы" Click="OrdersClick" />
+				<Button Content="Пользователи" Click="UsersClick" />
+				<Button Content="Тарифы" Click="TariffsClick" />
+				<Button Content="Выход" Click="LogoutClick" Background="#E74C3C" Foreground="White" />
+			</StackPanel>
+		</Border>
+		<ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+	</Grid>
 </Window>

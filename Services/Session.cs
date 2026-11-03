@@ -10,6 +10,11 @@ public static class Session
     public static User? CurrentUser { get; private set; }
     public static string Caption => CurrentUser == null ? "Гость" : $"{CurrentUser.FullName} ({CurrentUser.Role?.RoleName})";
 
+    public static void SetCurrentUser(User user)
+    {
+        CurrentUser = user;
+    }
+
     public static async Task LoginAsync(string login)
     {
         using var db = Db.Create();
