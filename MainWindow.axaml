@@ -3,7 +3,7 @@
         xmlns:vm="using:TaxiDispatcher.ViewModels"
         x:Class="TaxiDispatcher.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="Диспетчерская таксиP" Width="900" Height="650">
+        Title="Диспетчерская такси" Width="900" Height="650">
 	<Window.DataContext>
 		<vm:MainViewModel />
 	</Window.DataContext>

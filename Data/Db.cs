@@ -13,6 +13,7 @@ public static class Db
         var options = new DbContextOptionsBuilder<TaxiContext>()
             .UseSqlServer(connection)
             .Options;
+
         return new TaxiContext(options);
     }
 }
