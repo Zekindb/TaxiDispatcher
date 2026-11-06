@@ -3,19 +3,31 @@
         xmlns:vm="using:TaxiDispatcher.ViewModels"
         x:Class="TaxiDispatcher.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="Диспетчерская такси" Width="900" Height="650">
-	<Window.DataContext>
-		<vm:MainViewModel />
-	</Window.DataContext>
-	<Grid RowDefinitions="Auto, *">
-		<Border Grid.Row="0" x:Name="MenuPanel" IsVisible="False" Background="#2C3E50" Padding="10">
-			<StackPanel Orientation="Horizontal" Spacing="10">
-				<Button Content="Заказы" Click="OrdersClick" />
-				<Button Content="Пользователи" Click="UsersClick" />
-				<Button Content="Тарифы" Click="TariffsClick" />
-				<Button Content="Выход" Click="LogoutClick" Background="#E74C3C" Foreground="White" />
-			</StackPanel>
-		</Border>
-		<ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
-	</Grid>
+        Title="Диспетчерская такси" Width="980" Height="650">
+    
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+    <Grid RowDefinitions="Auto, *">
+        <Border Grid.Row="0" x:Name="MenuPanel" IsVisible="False" Background="#2C3E50" Padding="10">
+            <Grid ColumnDefinitions="Auto, *, Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5">
+                    <Button Content="Заказы" Click="OrdersClick" Background="Transparent" Foreground="White" />
+                    <Button Content="Пользователи" Click="UsersClick" Background="Transparent" Foreground="White" />
+                    <Button Content="Тарифы" Click="TariffsClick" Background="Transparent" Foreground="White" />
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <Button x:Name="ThemeBtn" Click="ThemeClick" Background="Transparent" BorderThickness="0" 
+                            ToolTip.ShowDelay="400" ToolTip.Tip="Системная">
+                        <PathIcon x:Name="ThemeIcon" Width="22" Height="22" Foreground="White" 
+                                  Data="{StaticResource MonitorIcon}"/>
+                    </Button>
+                    
+                    <Button Content="Выход" Click="LogoutClick" Background="#E74C3C" Foreground="White" />
+                </StackPanel>
+            </Grid>
+        </Border>
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+    </Grid>
 </Window>

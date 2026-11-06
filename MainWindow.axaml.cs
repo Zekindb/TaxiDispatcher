@@ -1,42 +1,64 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
-using TaxiDispatcher.Data;
-using TaxiDispatcher.Models;
+using Avalonia.Media;
+using Avalonia.Styling;
 using TaxiDispatcher.Services;
 using TaxiDispatcher.Views;
 using TaxiDispatcher.ViewModels;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace TaxiDispatcher;
 
 public partial class MainWindow : Window
 {
+    private int _themeState = 0;
+
     public MainWindow()
     {
         InitializeComponent();
-        InitializeDatabase();
-    }
-
-    private void InitializeDatabase()
-    {
-        try
-        {
-            using var db = Db.Create();
-            db.Database.ExecuteSqlRaw("IF COL_LENGTH('Users', 'password_hash') IS NULL ALTER TABLE Users ADD password_hash nvarchar(255) NOT NULL DEFAULT '';");
-
-            var admin = db.Users.FirstOrDefault(u => u.Login == "admin");
-            if (admin != null && string.IsNullOrEmpty(admin.PasswordHash))
-            {
-                admin.PasswordHash = AuthService.HashPassword("admin123");
-                db.SaveChanges();
-            }
-        }
-        catch { /* Игнорируем при отсутствии БД */ }
+        Loaded += (s, e) => UpdateThemeIconAndTooltip();
     }
 
     public void ShowMenu() => MenuPanel.IsVisible = true;
     public void HideMenu() => MenuPanel.IsVisible = false;
+
+    private void ThemeClick(object? sender, RoutedEventArgs e)
+    {
+        if (Application.Current == null) return;
+
+        _themeState = (_themeState + 1) % 3;
+
+        if (_themeState == 0)
+            Application.Current.RequestedThemeVariant = ThemeVariant.Default;
+        else if (_themeState == 1)
+            Application.Current.RequestedThemeVariant = ThemeVariant.Light;
+        else
+            Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
+
+        UpdateThemeIconAndTooltip();
+    }
+
+    private void UpdateThemeIconAndTooltip()
+    {
+        if (ThemeIcon == null || ThemeBtn == null || Application.Current == null)
+            return;
+
+        if (_themeState == 0)
+        {
+            ThemeIcon.Data = (StreamGeometry)Application.Current.FindResource("MonitorIcon")!;
+            ToolTip.SetTip(ThemeBtn, "Системная тема");
+        }
+        else if (_themeState == 1)
+        {
+            ThemeIcon.Data = (StreamGeometry)Application.Current.FindResource("SunIcon")!;
+            ToolTip.SetTip(ThemeBtn, "Светлая тема");
+        }
+        else
+        {
+            ThemeIcon.Data = (StreamGeometry)Application.Current.FindResource("MoonIcon")!;
+            ToolTip.SetTip(ThemeBtn, "Тёмная тема");
+        }
+    }
 
     private void OrdersClick(object? sender, RoutedEventArgs e)
         => (DataContext as MainViewModel)?.CurrentPage = new OrdersView();

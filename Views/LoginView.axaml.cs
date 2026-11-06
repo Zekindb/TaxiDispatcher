@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using TaxiDispatcher.Services;
 
@@ -7,6 +8,14 @@ namespace TaxiDispatcher.Views;
 public partial class LoginView : UserControl
 {
     public LoginView() => InitializeComponent();
+
+    private void LoginView_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            LoginClick(sender, new RoutedEventArgs());
+        }
+    }
 
     private async void LoginClick(object? sender, RoutedEventArgs e)
     {
@@ -28,6 +37,6 @@ public partial class LoginView : UserControl
 
         var main = (MainWindow)TopLevel.GetTopLevel(this)!;
         main.ShowMenu();
-        (main.DataContext as TaxiDispatcher.ViewModels.MainViewModel)?.CurrentPage = new OrdersView();
+        (main.DataContext as ViewModels.MainViewModel)?.CurrentPage = new OrdersView();
     }
 }
