@@ -13,8 +13,8 @@
             <Grid ColumnDefinitions="Auto, *, Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="5">
                     <Button Content="Заказы" Click="OrdersClick" Background="Transparent" Foreground="White" />
-                    <Button Content="Пользователи" Click="UsersClick" Background="Transparent" Foreground="White" />
-                    <Button Content="Тарифы" Click="TariffsClick" Background="Transparent" Foreground="White" />
+                    <Button x:Name="UsersBtn" Content="Пользователи" Click="UsersClick" Background="Transparent" Foreground="White" />
+                    <Button x:Name="TariffsBtn" Content="Тарифы" Click="TariffsClick" Background="Transparent" Foreground="White" />
                 </StackPanel>
                 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">

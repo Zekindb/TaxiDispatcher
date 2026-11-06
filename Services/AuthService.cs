@@ -15,7 +15,7 @@ public static class AuthService
         if (user == null || string.IsNullOrEmpty(user.PasswordHash))
             return null;
 
-        return BC.Verify(password, user.PasswordHash) ? user : null;
+        return await Task.Run(() => BC.Verify(password, user.PasswordHash)) ? user : null;
     }
 
     public static string HashPassword(string password) => BC.HashPassword(password);

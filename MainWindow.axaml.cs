@@ -19,12 +19,27 @@ public partial class MainWindow : Window
         Loaded += (s, e) => UpdateThemeIconAndTooltip();
     }
 
-    public void ShowMenu() => MenuPanel.IsVisible = true;
+    public void ShowMenu() 
+    { 
+        MenuPanel.IsVisible = true;
+        ConfigureMenuByRole();
+    }
+    
     public void HideMenu() => MenuPanel.IsVisible = false;
+
+    private void ConfigureMenuByRole()
+    {
+        string roleName = Session.CurrentUser?.Role?.RoleName?.Trim().ToLower() ?? "";
+        bool isAdmin = roleName == "администратор";
+
+        UsersBtn.IsVisible = isAdmin;
+        TariffsBtn.IsVisible = isAdmin;
+    }
 
     private void ThemeClick(object? sender, RoutedEventArgs e)
     {
-        if (Application.Current == null) return;
+        if (Application.Current == null) 
+            return;
 
         _themeState = (_themeState + 1) % 3;
 
@@ -40,7 +55,7 @@ public partial class MainWindow : Window
 
     private void UpdateThemeIconAndTooltip()
     {
-        if (ThemeIcon == null || ThemeBtn == null || Application.Current == null)
+        if (ThemeIcon == null || ThemeBtn == null || Application.Current == null) 
             return;
 
         if (_themeState == 0)
@@ -60,19 +75,20 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OrdersClick(object? sender, RoutedEventArgs e)
+    private void OrdersClick(object? sender, RoutedEventArgs e) 
         => (DataContext as MainViewModel)?.CurrentPage = new OrdersView();
 
-    private void UsersClick(object? sender, RoutedEventArgs e)
+    private void UsersClick(object? sender, RoutedEventArgs e) 
         => (DataContext as MainViewModel)?.CurrentPage = new UsersView();
 
-    private void TariffsClick(object? sender, RoutedEventArgs e)
+    private void TariffsClick(object? sender, RoutedEventArgs e) 
         => (DataContext as MainViewModel)?.CurrentPage = new TariffsView();
 
     private void LogoutClick(object? sender, RoutedEventArgs e)
     {
         Session.Logout();
         HideMenu();
+
         (DataContext as MainViewModel)?.CurrentPage = new LoginView();
     }
 }

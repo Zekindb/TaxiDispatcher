@@ -1,4 +1,6 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Interactivity;
 using TaxiDispatcher.Models;
 using TaxiDispatcher.Services;
@@ -8,26 +10,36 @@ namespace TaxiDispatcher.Views;
 public partial class OrdersView : UserControl
 {
     private Order? _selectedOrder;
+    private bool _isLoaded = false;
 
     public OrdersView()
     {
         InitializeComponent();
-        Loaded += async (s, e) => await LoadOrdersAsync();
+        Loaded += async (s, e) => { _isLoaded = true; await LoadOrdersAsync(); };
     }
 
-    private async System.Threading.Tasks.Task LoadOrdersAsync()
+    private async Task LoadOrdersAsync()
     {
+        if (!_isLoaded)
+            return;
+
         try
         {
-            OrdersList.ItemsSource = await OrderService.GetOrdersAsync();
+            string search = SearchBox?.Text ?? "";
+            int statusId = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag is string tag ? int.Parse(tag) : 0;
+            bool isDesc = (SortOrder?.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "1";
+
+            OrdersList.ItemsSource = await OrderService.GetOrdersAsync(search, statusId, isDesc);
         }
-        catch (System.Exception ex)
-        {
-            System.Console.WriteLine(ex.Message);
-        }
+        catch (Exception ex) { Console.WriteLine(ex.Message); }
     }
 
-    private async void ReloadClick(object? sender, RoutedEventArgs e)
+    private async void SearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        await LoadOrdersAsync();
+    }
+
+    private async void FilterSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         await LoadOrdersAsync();
     }
@@ -36,13 +48,7 @@ public partial class OrdersView : UserControl
     {
         _selectedOrder = null;
         ModalTitle.Text = "Создание нового заказа";
-
-        ClientNameBox.Text = "";
-        ClientPhoneBox.Text = "";
-        PickupBox.Text = "";
-        DestinationBox.Text = "";
-        DistanceBox.Text = "";
-
+        ClientNameBox.Text = ""; ClientPhoneBox.Text = ""; PickupBox.Text = ""; DestinationBox.Text = ""; DistanceBox.Text = "";
         ModalOverlay.IsVisible = true;
     }
 
@@ -64,14 +70,32 @@ public partial class OrdersView : UserControl
         ModalOverlay.IsVisible = true;
     }
 
-    private void CancelClick(object? sender, RoutedEventArgs e)
-    {
-        ModalOverlay.IsVisible = false;
-    }
+    private void CancelClick(object? sender, RoutedEventArgs e) => ModalOverlay.IsVisible = false;
 
-    private void SaveClick(object? sender, RoutedEventArgs e)
+    private async void SaveClick(object? sender, RoutedEventArgs e)
     {
-        ModalOverlay.IsVisible = false;
-        // Empty
+        try
+        {
+            if (string.IsNullOrWhiteSpace(ClientNameBox.Text))
+            {
+                Console.WriteLine("Введите ФИО");
+                return;
+            }
+
+            var order = _selectedOrder ?? new Order();
+            order.ClientName = ClientNameBox.Text;
+            order.ClientPhone = ClientPhoneBox.Text ?? "";
+            order.PickupAddress = PickupBox.Text ?? "";
+            order.DestinationAddress = DestinationBox.Text ?? "";
+            
+            if (decimal.TryParse(DistanceBox.Text, out decimal dist))
+                order.DistanceKm = dist;
+
+            await OrderService.SaveOrderAsync(order);
+            
+            ModalOverlay.IsVisible = false;
+            await LoadOrdersAsync();
+        }
+        catch (Exception ex) { Console.WriteLine(ex.Message); }
     }
 }
