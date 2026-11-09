@@ -1,5 +1,7 @@
 ﻿using System;
+
 namespace TaxiDispatcher.Models;
+
 public partial class Order
 {
     public int OrderId { get; set; }
@@ -10,5 +12,9 @@ public partial class Order
     public string DestinationAddress { get; set; } = null!;
     public decimal? DistanceKm { get; set; }
     public int StatusId { get; set; }
+    public int? TariffId { get; set; }
+    
     public virtual OrderStatus Status { get; set; } = null!;
+    public virtual Tariff? Tariff { get; set; }
+    public virtual Invoice? Invoice { get; set; }
 }

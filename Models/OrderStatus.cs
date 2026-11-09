@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+
 namespace TaxiDispatcher.Models;
+
 public partial class OrderStatus
 {
     public int StatusId { get; set; }

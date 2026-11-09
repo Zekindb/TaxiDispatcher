@@ -3,11 +3,12 @@
              x:Class="TaxiDispatcher.Views.LoginView">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="15" Width="300">
         <TextBlock Text="Вход в систему" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-        <TextBox x:Name="LoginBox" Watermark="Логин" />
-        <TextBox x:Name="PasswordBox" Watermark="Пароль" PasswordChar="*" />
+        <TextBox x:Name="LoginBox" PlaceholderText="Логин" />
+        <TextBox x:Name="PasswordBox" PlaceholderText="Пароль" PasswordChar="*" />
+
         <Button x:Name="LoginButton" Content="Войти" Click="LoginClick" IsDefault="True" 
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Background="#3498DB" Foreground="White"/>
-
+        
         <ProgressBar x:Name="LoadingBar" IsIndeterminate="True" IsVisible="False" Height="4" />
         <TextBlock x:Name="ErrorText" Foreground="Red" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/>
     </StackPanel>

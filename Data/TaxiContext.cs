@@ -12,55 +12,88 @@ public partial class TaxiContext : DbContext
     public virtual DbSet<User> Users { get; set; }
     public virtual DbSet<Order> Orders { get; set; }
     public virtual DbSet<OrderStatus> OrderStatuses { get; set; }
+    public virtual DbSet<Tariff> Tariffs { get; set; }
+    public virtual DbSet<CarClass> CarClasses { get; set; }
+    public virtual DbSet<Invoice> Invoices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Role>(entity =>
+        modelBuilder.Entity<Role>(entity => 
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__760965CC58D14F82");
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__783254B1E210467A").IsUnique();
+            entity.HasKey(e => e.RoleId);
             entity.Property(e => e.RoleId).HasColumnName("role_id");
             entity.Property(e => e.RoleName).HasMaxLength(50).HasColumnName("role_name");
         });
 
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<User>(entity => 
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__B9BE370F638FE254");
-            entity.HasIndex(e => e.Login, "UQ__Users__7838F2725324F593").IsUnique();
+            entity.HasKey(e => e.UserId);
+            entity.HasIndex(e => e.Login).IsUnique();
             entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.FullName).HasMaxLength(150).HasColumnName("full_name");
-            entity.Property(e => e.Login).HasMaxLength(50).HasColumnName("login");
-            entity.Property(e => e.Phone).HasMaxLength(20).HasColumnName("phone");
+            entity.Property(e => e.Login).HasColumnName("login");
+            entity.Property(e => e.LastName).HasColumnName("last_name").HasMaxLength(60);
+            entity.Property(e => e.FirstName).HasColumnName("first_name").HasMaxLength(60);
+            entity.Property(e => e.MiddleName).HasColumnName("middle_name").HasMaxLength(60);
+            entity.Property(e => e.Phone).HasColumnName("phone");
             entity.Property(e => e.RoleId).HasColumnName("role_id");
-            entity.Property(e => e.PasswordHash).HasMaxLength(255).HasColumnName("password_hash");
-
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
-                .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            
+            entity.HasOne(d => d.Role).WithMany(p => p.Users).HasForeignKey(d => d.RoleId);
         });
 
-        modelBuilder.Entity<OrderStatus>(entity =>
+        modelBuilder.Entity<OrderStatus>(entity => 
         {
             entity.HasKey(e => e.StatusId);
             entity.Property(e => e.StatusId).HasColumnName("status_id");
-            entity.Property(e => e.StatusName).HasMaxLength(50).HasColumnName("status_name").IsRequired();
+            entity.Property(e => e.StatusName).HasMaxLength(50).HasColumnName("status_name");
         });
 
-        modelBuilder.Entity<Order>(entity =>
+        modelBuilder.Entity<CarClass>(entity => 
+        {
+            entity.HasKey(e => e.ClassId);
+            entity.Property(e => e.ClassId).HasColumnName("class_id");
+            entity.Property(e => e.ClassName).HasMaxLength(50).HasColumnName("class_name");
+        });
+
+        modelBuilder.Entity<Tariff>(entity => 
+        {
+            entity.HasKey(e => e.TariffId);
+            entity.Property(e => e.TariffId).HasColumnName("tariff_id");
+            entity.Property(e => e.TariffName).HasMaxLength(50).HasColumnName("tariff_name");
+            entity.Property(e => e.BaseFare).HasColumnName("base_fare").HasColumnType("decimal(8,2)");
+            entity.Property(e => e.PricePerKm).HasColumnName("price_per_km").HasColumnType("decimal(8,2)");
+            entity.Property(e => e.MinFare).HasColumnName("min_fare").HasColumnType("decimal(8,2)");
+            entity.Property(e => e.CarClassId).HasColumnName("car_class_id");
+
+            entity.HasOne(d => d.CarClass).WithMany(p => p.Tariffs).HasForeignKey(d => d.CarClassId);
+        });
+
+        modelBuilder.Entity<Order>(entity => 
         {
             entity.HasKey(e => e.OrderId);
             entity.Property(e => e.OrderId).HasColumnName("order_id");
             entity.Property(e => e.OrderDate).HasColumnName("order_date");
-            entity.Property(e => e.ClientName).HasMaxLength(150).HasColumnName("client_name").IsRequired();
-            entity.Property(e => e.ClientPhone).HasMaxLength(20).HasColumnName("client_phone").IsRequired();
-            entity.Property(e => e.PickupAddress).HasMaxLength(250).HasColumnName("pickup_address").IsRequired();
-            entity.Property(e => e.DestinationAddress).HasMaxLength(250).HasColumnName("destination_address").IsRequired();
-            entity.Property(e => e.DistanceKm).HasColumnType("decimal(6, 2)").HasColumnName("distance_km");
+            entity.Property(e => e.ClientName).HasColumnName("client_name");
+            entity.Property(e => e.ClientPhone).HasColumnName("client_phone");
+            entity.Property(e => e.PickupAddress).HasColumnName("pickup_address");
+            entity.Property(e => e.DestinationAddress).HasColumnName("destination_address");
+            entity.Property(e => e.DistanceKm).HasColumnName("distance_km").HasColumnType("decimal(6, 2)");
             entity.Property(e => e.StatusId).HasColumnName("status_id");
+            entity.Property(e => e.TariffId).HasColumnName("tariff_id");
+            
+            entity.HasOne(d => d.Status).WithMany(p => p.Orders).HasForeignKey(d => d.StatusId);
+            entity.HasOne(d => d.Tariff).WithMany().HasForeignKey(d => d.TariffId);
+        });
 
-            entity.HasOne(d => d.Status).WithMany(p => p.Orders)
-                .HasForeignKey(d => d.StatusId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+        modelBuilder.Entity<Invoice>(entity => 
+        {
+            entity.HasKey(e => e.InvoiceId);
+            entity.Property(e => e.InvoiceId).HasColumnName("invoice_id");
+            entity.Property(e => e.OrderId).HasColumnName("order_id");
+            entity.Property(e => e.Amount).HasColumnName("amount").HasColumnType("decimal(10,2)");
+            entity.Property(e => e.PaymentStatus).HasColumnName("payment_status");
+            
+            entity.HasOne(d => d.Order).WithOne(p => p.Invoice).HasForeignKey<Invoice>(d => d.OrderId);
         });
 
         OnModelCreatingPartial(modelBuilder);
