@@ -15,6 +15,8 @@ public partial class OrdersView : UserControl
     private Order? _selectedOrder;
     private List<Tariff> _tariffs = new();
     private bool _isLoaded = false;
+    
+    public List<OrderStatus> StatusList = new();
 
     public OrdersView()
     {
@@ -28,6 +30,13 @@ public partial class OrdersView : UserControl
         {
             _tariffs = await TariffService.GetTariffsAsync();
             if (TariffBox != null) TariffBox.ItemsSource = _tariffs;
+
+            StatusList = await OrderService.GetStatusesAsync();
+            if (StatusBox != null) StatusBox.ItemsSource = StatusList;
+
+            this.DataContext = null; 
+            this.DataContext = this; 
+
             await LoadOrdersAsync();
         }
         catch (Exception ex) { Console.WriteLine(ex.Message); }
@@ -41,11 +50,44 @@ public partial class OrdersView : UserControl
         try
         {
             string search = SearchBox?.Text ?? "";
-            int statusId = (StatusFilter?.SelectedItem as ComboBoxItem)?.Tag is string tag ? int.Parse(tag) : 0;
+
+            int statusId = 0;
+            if (FilterStatus?.SelectedItem is ComboBoxItem item && item.Tag != null)
+                statusId = int.Parse(item.Tag.ToString()!);
+
             bool isDesc = (SortOrder?.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "1";
             OrdersList.ItemsSource = await OrderService.GetOrdersAsync(search, statusId, isDesc);
         }
         catch (Exception ex) { Console.WriteLine(ex.Message); }
+    }
+
+    private async void OrderStatusChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        var comboBox = sender as ComboBox;
+        if (comboBox == null)
+            return;
+
+        var order = comboBox.DataContext as Order;
+        var newStatus = comboBox.SelectedItem as OrderStatus;
+        
+        if (order == null || newStatus == null)
+            return;
+
+        if (order.StatusId == newStatus.StatusId)
+            return;
+
+        try
+        {
+            await OrderService.UpdateOrderStatusAsync(order.OrderId, newStatus.StatusId);
+            order.StatusId = newStatus.StatusId;
+            order.Status = newStatus; 
+
+            MainWindow.Instance.ShowToast("Статус обновлен!", false);
+        }
+        catch (Exception ex)
+        {
+            MainWindow.Instance.ShowToast("Ошибка смены статуса: " + ex.Message);
+        }
     }
 
     private async void SearchTextChanged(object? sender, TextChangedEventArgs e) => await LoadOrdersAsync();
@@ -96,10 +138,13 @@ public partial class OrdersView : UserControl
         ModalTitle.Text = "Создание заказа";
         ClientNameBox.Text = ""; ClientPhoneBox.Text = ""; PickupBox.Text = ""; DestinationBox.Text = ""; DistanceBox.Text = "";
         TariffBox.SelectedIndex = -1;
+
+        StatusLabel.IsVisible = false;
+        StatusBox.IsVisible = false;
+        
         PriceLabel.Text = "0,00 руб.";
         
         ValidateName(); ValidatePhone(); ValidatePickup(); ValidateDestination(); ValidateDistance(); ValidateTariff();
-        
         ModalOverlay.IsVisible = true;
     }
 
@@ -117,6 +162,10 @@ public partial class OrdersView : UserControl
         DistanceBox.Text = _selectedOrder.DistanceKm?.ToString() ?? "";
         
         if (TariffBox != null) TariffBox.SelectedItem = _tariffs.FirstOrDefault(t => t.TariffId == _selectedOrder.TariffId);
+
+        StatusLabel.IsVisible = true;
+        StatusBox.IsVisible = true;
+        if (StatusBox != null) StatusBox.SelectedItem = StatusList.FirstOrDefault(s => s.StatusId == _selectedOrder.StatusId);
         
         ValidateName(); ValidatePhone(); ValidatePickup(); ValidateDestination(); ValidateDistance(); ValidateTariff();
         ModalOverlay.IsVisible = true;
@@ -146,6 +195,7 @@ public partial class OrdersView : UserControl
         if (errors.Count > 0) { MainWindow.Instance.ShowToasts(errors); return; }
 
         var tariff = TariffBox.SelectedItem as Tariff;
+        var selectedStatus = StatusBox.SelectedItem as OrderStatus;
         decimal.TryParse(DistanceBox.Text, out decimal dist);
 
         if (_selectedOrder != null)
@@ -155,7 +205,8 @@ public partial class OrdersView : UserControl
                 _selectedOrder.PickupAddress == PickupBox.Text &&
                 _selectedOrder.DestinationAddress == DestinationBox.Text &&
                 _selectedOrder.DistanceKm == dist &&
-                _selectedOrder.TariffId == tariff?.TariffId)
+                _selectedOrder.TariffId == tariff?.TariffId &&
+                _selectedOrder.StatusId == selectedStatus?.StatusId)
             {
                 ModalOverlay.IsVisible = false;
                 return; 
@@ -171,6 +222,7 @@ public partial class OrdersView : UserControl
             order.DestinationAddress = DestinationBox.Text!;
             order.TariffId = tariff?.TariffId;
             order.DistanceKm = dist;
+            order.StatusId = _selectedOrder == null ? 1 : (selectedStatus?.StatusId ?? 1);
 
             await OrderService.SaveOrderAsync(order);
             ModalOverlay.IsVisible = false;
@@ -180,4 +232,3 @@ public partial class OrdersView : UserControl
         catch (Exception ex) { MainWindow.Instance.ShowToast("Ошибка: " + ex.Message); }
     }
 }
-

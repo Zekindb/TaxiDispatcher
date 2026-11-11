@@ -77,4 +77,21 @@ public static class OrderService
             }
         }
     }
+
+    public static async Task<List<OrderStatus>> GetStatusesAsync()
+    {
+        using var db = Db.Create();
+        return await db.OrderStatuses.ToListAsync();
+    }
+
+    public static async Task UpdateOrderStatusAsync(int orderId, int statusId)
+    {
+        using var db = Db.Create();
+        var order = await db.Orders.FindAsync(orderId);
+        if (order != null)
+        {
+            order.StatusId = statusId;
+            await db.SaveChangesAsync();
+        }
+    }
 }
