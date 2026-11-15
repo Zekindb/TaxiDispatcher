@@ -16,7 +16,7 @@ public partial class OrdersView : UserControl
     private List<Tariff> _tariffs = new();
     private bool _isLoaded = false;
     
-    public List<OrderStatus> StatusList = new();
+    public List<OrderStatus> StatusList { get; set; } = new();
 
     public OrdersView()
     {
